@@ -17,7 +17,7 @@ class OrderDetailService{
                 return response()->json($order);
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 //jika id tidak ditemukan, akan mengembalikan pesan order not found
-                return response()->json(['message' => 'Order not found']);
+                return response()->json(['message' => 'Order Details not found']);
             }
         }
     }
