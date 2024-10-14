@@ -5,6 +5,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TypeController;
+use App\Http\Controllers\UserController;
 use App\Models\OrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,11 +43,16 @@ Route::post('/types',[TypeController::class,'create']);
 Route::post('/types/{id}',[TypeController::class,'edit']);
 Route::delete('/types/{id}',[TypeController::class,'destroy']);
 
-//Services
+//services
 Route::get('/services',[ServiceController::class,'index']);
 Route::get('/services/{id}',[ServiceController::class,'show']);
 Route::post('/services',[ServiceController::class,'create']);
 Route::put('/services/{id}',[ServiceController::class,'edit']);
 Route::delete('/services/{id}',[ServiceController::class,'destroy']);
                                   
-
+//users
+Route::get('/users',[UserController::class,'index']);
+Route::get('/users/{id}',[UserController::class,'show']);
+Route::post('/users',[UserController::class,'create']);
+Route::put('/users/{id}',[UserController::class,'edit']);
+Route::delete('/users/{id}',[UserController::class,'destroy']);
