@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ServiceController extends Controller
 {
@@ -14,8 +17,23 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $data=Service::all();
-        return response()->json($data, 200);
+        try {
+            //ambil semua data
+            $data = Service::all();
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'message' => 'There is no data available'
+                ], 404); // Mengembalikan status kode 404 (Not Found)
+            } else {
+                return response()->json([
+                    'message' => 'data is available',
+                    'data' => $data
+                ]);
+            }
+        } catch (Exception $e) {
+            //catch error
+            return response()->json(['message' => 'error']);
+        }
     }
 
     /**
@@ -25,24 +43,6 @@ class ServiceController extends Controller
      */
     public function create(Request $request)
     {
-
-        //validasi
-        $request->validate([
-            'service' => 'required', 
-            'price'=>'required|numeric',
-            'description'=>'required'
-         
-        ]);
-
-        //create
-        $data=Service::create([
-            'service' =>$request['service'], 
-            'price'=>$request['price'],
-            'description'=>$request['description'],
-        ]);
-
-        return response()->json($data);
-
     }
 
     /**
@@ -53,7 +53,34 @@ class ServiceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            //validasi
+            $validatedData = Validator::make($request->all(), ([
+                'service' => 'required',
+                'price' => 'required|numeric',
+                'description' => 'required'
+            ]));
+
+            //cek gagal atau tidak
+            if ($validatedData->fails()) {
+                // pesan error
+                return response()->json([
+                    'message' => 'Validation Error',
+                    'errors' => $validatedData->errors()
+                ], 422); // 422 Unprocessable Entity status code
+            } else {
+                //create
+                $data = Service::create([
+                    'service' => $request['service'],
+                    'price' => $request['price'],
+                    'description' => $request['description'],
+                ]);
+                return response()->json($data);
+            }
+        } catch (Exception $e) {
+            // Jika terjadi kesalahan, ya gitu
+            return response()->json(['message' => 'An error occurred'], 500);
+        }
     }
 
     /**
@@ -64,8 +91,15 @@ class ServiceController extends Controller
      */
     public function show($id)
     {
-        $data=Service::findOrFail($id);
-        return response()->json($data);
+        try {
+            $data = Service::findOrFail($id);
+            return response()->json($data);
+        } catch (ModelNotFoundException $e) {
+            //jika id tidak ditemukan, akan mengembalikan pesan service not found
+            return response()->json([
+                'message' => 'The services is not found',
+            ]);
+        }
     }
 
     /**
@@ -76,24 +110,9 @@ class ServiceController extends Controller
      */
     public function edit(Request $request, $id)
     {
-        //validasi
-        $request->validate([
-            'service' => 'required', 
-            'price'=>'required|numeric',
-            'description'=>'required'
-        ]);
-
-        //update dengan data baru
-        $data=Service::findOrFail($id);
-        $data->update([
-            'service' =>$request['service'], 
-            'price'=>$request['price'],
-            'description'=>$request['description'],
-        ]);
-       
-        return response()->json($data);
-
     }
+
+
 
     /**
      * Update the specified resource in storage.
@@ -102,9 +121,42 @@ class ServiceController extends Controller
      * @param  \App\Models\Service  $service
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Service $service)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            //validasi
+            $validatedData = Validator::make($request->all(), ([
+                'service' => 'required',
+                'price' => 'required|numeric',
+                'description' => 'required'
+            ]));
+
+            if ($validatedData->fails()) {
+                // pesan error
+                return response()->json([
+                    'message' => 'Validation Error',
+                    'errors' => $validatedData->errors()
+                ], 422); // 422 Unprocessable Entity status code
+            } else {
+                //update dengan data baru
+                $data = Service::findOrFail($id);
+                $data->update([
+                    'service' => $request['service'],
+                    'price' => $request['price'],
+                    'description' => $request['description'],
+                ]);
+
+                return response()->json($data);
+            }
+        } catch (ModelNotFoundException $e) {
+            //jika id tidak ditemukan, akan mengembalikan pesan service not found
+            return response()->json([
+                'message' => 'The services is not found',
+            ]);
+        } catch (Exception $e) {
+            // Jika terjadi kesalahan, ya gitu
+            return response()->json(['message' => 'An error occurred'], 500);
+        }
     }
 
     /**
@@ -115,9 +167,19 @@ class ServiceController extends Controller
      */
     public function destroy($id)
     {
-        $data=Service::findOrFail($id);
-        $data->delete();
+        try {
+            $data = Service::findOrFail($id);
+            $data->delete();
 
-        return response()->json(['message'=>'data has been deleted', 'data'=>$data]);
+            return response()->json(['message' => 'data has been deleted', 'data' => $data]);
+        } catch (ModelNotFoundException $e) {
+            //jika id tidak ditemukan, akan mengembalikan pesan service not found
+            return response()->json([
+                'message' => 'The services is not found',
+            ]);
+        } catch (Exception $e) {
+            // Jika terjadi kesalahan, ya gitu
+            return response()->json(['message' => 'An error occurred'], 500);
+        }
     }
 }
